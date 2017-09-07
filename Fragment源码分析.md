@@ -52,6 +52,15 @@ public class MainActivity extends FragmentActivity {
 
 ## Activity与Fragment之间的关系
 
+![](images/Fragment1.svg)
+
+
+```Java
+
+
+```
+
+
 
 ## 一次Transaction发生了什么
 

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="1015" version="1.1" width="1599" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="171" stroke="#ffffff" stroke-width="1" width="179" x="1406" y="382"/>
+<rect fill="none" height="171" stroke="#000000" stroke-width="1" width="179" x="1406" y="382"/>
+<text font-family="Dialog" font-size="12" x="1453" y="418">
+BackStackEntry</text>
+<text font-family="Dialog" font-size="12" x="1458" y="397">
+&lt;&lt;interface&gt;&gt;</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="179" x="1406" y="430"/>
+<text font-family="Dialog" font-size="12" x="1410" y="445">
+getId()</text>
+<text font-family="Dialog" font-size="12" x="1410" y="464">
+getName()</text>
+<text font-family="Dialog" font-size="12" x="1410" y="483">
+getBreadCrumbTitleRes()</text>
+<text font-family="Dialog" font-size="12" x="1410" y="502">
+getBreadCrumbShortTitleRes()</text>
+<text font-family="Dialog" font-size="12" x="1410" y="521">
+getBreadCrumbTitle()</text>
+<text font-family="Dialog" font-size="12" x="1410" y="540">
+getBreadCrumbShortTitle()</text>
+<rect fill="#ffffff" height="138" stroke="#ffffff" stroke-width="1" width="140" x="822" y="630"/>
+<rect fill="none" height="138" stroke="#000000" stroke-width="1" width="140" x="822" y="630"/>
+<text font-family="Dialog" font-size="12" x="829" y="644">
+FragmentManagerImpl</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="140" x="822" y="656"/>
+<text font-family="Dialog" font-size="12" x="826" y="671">
+mActive : List</text>
+<text font-family="Dialog" font-size="12" x="826" y="690">
+mAdded : List</text>
+<text font-family="Dialog" font-size="12" x="826" y="709">
+mAvailIndices : List</text>
+<text font-family="Dialog" font-size="12" x="826" y="728">
+mBackStack : List</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="140" x="822" y="743"/>
+<rect fill="#ffffff" height="385" stroke="#ffffff" stroke-width="1" width="299" x="358" y="14"/>
+<rect fill="none" height="385" stroke="#000000" stroke-width="1" width="299" x="358" y="14"/>
+<text font-family="Dialog" font-size="12" x="481" y="28">
+Fragment</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="299" x="358" y="40"/>
+<text font-family="Dialog" font-size="12" x="362" y="55">
+INITIALIZING : Integer</text>
+<text font-family="Dialog" font-size="12" x="362" y="74">
+CREATED : Integer</text>
+<text font-family="Dialog" font-size="12" x="362" y="93">
+ACTIVITY_CREATED : Integer</text>
+<text font-family="Dialog" font-size="12" x="362" y="112">
+STOPPED : Integer</text>
+<text font-family="Dialog" font-size="12" x="362" y="131">
+STARTED : Integer</text>
+<text font-family="Dialog" font-size="12" x="362" y="150">
+RESUMED : Integer</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="299" x="358" y="162"/>
+<text font-family="Dialog" font-size="12" x="362" y="177">
+instantiate(context : Integer,fname : String) : Fragment</text>
+<text font-family="Dialog" font-size="12" x="362" y="196">
+onAttach()</text>
+<text font-family="Dialog" font-size="12" x="362" y="215">
+onCreate()</text>
+<text font-family="Dialog" font-size="12" x="362" y="234">
+onCreateView()</text>
+<text font-family="Dialog" font-size="12" x="362" y="253">
+onActivityCreated()</text>
+<text font-family="Dialog" font-size="12" x="362" y="272">
+onStart()</text>
+<text font-family="Dialog" font-size="12" x="362" y="291">
+onResume()</text>
+<text font-family="Dialog" font-size="12" x="362" y="310">
+onPause()</text>
+<text font-family="Dialog" font-size="12" x="362" y="329">
+onStop()</text>
+<text font-family="Dialog" font-size="12" x="362" y="348">
+onDestoryView()</text>
+<text font-family="Dialog" font-size="12" x="362" y="367">
+onDestroy()</text>
+<text font-family="Dialog" font-size="12" x="362" y="386">
+onDetach()</text>
+<rect fill="#ffffff" height="75" stroke="#ffffff" stroke-width="1" width="231" x="62" y="414"/>
+<rect fill="none" height="75" stroke="#000000" stroke-width="1" width="231" x="62" y="414"/>
+<text font-family="Dialog" font-size="12" x="133" y="428">
+FragmentActivity</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="231" x="62" y="440"/>
+<text font-family="Dialog" font-size="12" x="66" y="455">
+mFragments : FragmentController</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="231" x="62" y="467"/>
+<rect fill="#ffffff" height="284" stroke="#ffffff" stroke-width="1" width="185" x="1142" y="46"/>
+<rect fill="none" height="284" stroke="#000000" stroke-width="1" width="185" x="1142" y="46"/>
+<text font-family="Dialog" font-size="12" x="1157" y="60">
+FragmentLifecycleCallbacks</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="185" x="1142" y="72"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="185" x="1142" y="93"/>
+<text font-family="Dialog" font-size="12" x="1146" y="108">
+onFragmentPreAttached()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="127">
+onFragmentAttached()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="146">
+onFragmentCreated()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="165">
+onFragmentActivityCreated()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="184">
+onFragmentViewCreated()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="203">
+onFragmentStarted()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="222">
+onFragmentResumed()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="241">
+onFragmentPaused()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="260">
+onFragmentSaveInstanceState()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="279">
+onFragmentViewDestroyed()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="298">
+onFragmentDestroyed()</text>
+<text font-family="Dialog" font-size="12" x="1146" y="317">
+onFragmentDetached()</text>
+<rect fill="#ffffff" height="170" stroke="#ffffff" stroke-width="1" width="412" x="678" y="398"/>
+<rect fill="none" height="170" stroke="#000000" stroke-width="1" width="412" x="678" y="398"/>
+<text font-family="Dialog" font-size="12" x="833" y="412">
+FragmentManager</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="412" x="678" y="424"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="412" x="678" y="445"/>
+<text font-family="Dialog" font-size="12" x="682" y="460">
+beginTransaction() : FragmentTransaction</text>
+<text font-family="Dialog" font-size="12" x="682" y="479">
+findFragmentById() : Fragment</text>
+<text font-family="Dialog" font-size="12" x="682" y="498">
+findFragmentByTag() : Fragment</text>
+<text font-family="Dialog" font-size="12" x="682" y="517">
+popBackStack()</text>
+<text font-family="Dialog" font-size="12" x="682" y="536">
+saveFragmentInstanceState(f : Fragment) : Fragment.SavedState</text>
+<text font-family="Dialog" font-size="12" x="682" y="555">
+registerFragmentLifecycleCallbacks()</text>
+<polyline fill="none" points="894,630 894,567" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="894,567 901,579 887,579" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="894,567 901,579 887,579" stroke="#000000" stroke-width="1"/>
+<rect fill="#ffffff" height="69" stroke="#ffffff" stroke-width="1" width="160" x="1214" y="662"/>
+<rect fill="none" height="69" stroke="#000000" stroke-width="1" width="160" x="1214" y="662"/>
+<text font-family="Dialog" font-size="12" x="1245" y="676">
+BackStackRecord</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="160" x="1214" y="688"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="160" x="1214" y="709"/>
+<rect fill="#ffffff" height="70" stroke="#ffffff" stroke-width="1" width="128" x="1222" y="438"/>
+<rect fill="none" height="70" stroke="#000000" stroke-width="1" width="128" x="1222" y="438"/>
+<text font-family="Dialog" font-size="12" x="1227" y="452">
+FragmentTransaction</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="128" x="1222" y="464"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="128" x="1222" y="485"/>
+<polyline fill="none" points="1294,662 1294,507" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="1294,507 1301,519 1287,519" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="1294,507 1301,519 1287,519" stroke="#000000" stroke-width="1"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1358" x2="1358" y1="662" y2="657"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1358" x2="1358" y1="652" y2="647"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1358" x2="1358" y1="642" y2="637"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1358" x2="1358" y1="632" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1358" x2="1363" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1368" x2="1373" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1378" x2="1383" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1388" x2="1393" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1398" x2="1403" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1408" x2="1413" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1418" x2="1423" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1428" x2="1433" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1438" x2="1443" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1448" x2="1453" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1458" x2="1463" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1468" x2="1473" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1478" x2="1483" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1488" x2="1493" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1498" x2="1503" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1508" x2="1513" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1518" x2="1523" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1528" x2="1533" y1="630" y2="630"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="630" y2="625"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="620" y2="615"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="610" y2="605"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="600" y2="595"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="590" y2="585"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="580" y2="575"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="570" y2="565"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1534" x2="1534" y1="560" y2="555"/>
+<polygon fill="#ffffff" points="1534,552 1541,564 1527,564" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="1534,552 1541,564 1527,564" stroke="#000000" stroke-width="1"/>
+<text font-family="Dialog" font-size="12" x="1326" y="556">
+&lt;&lt;realize&gt;&gt;</text>
+<rect fill="#ffffff" height="96" stroke="#ffffff" stroke-width="1" width="292" x="390" y="646"/>
+<rect fill="none" height="96" stroke="#000000" stroke-width="1" width="292" x="390" y="646"/>
+<text font-family="Dialog" font-size="12" x="472" y="660">
+FragmentHostCallback</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="292" x="390" y="672"/>
+<text font-family="Dialog" font-size="12" x="394" y="687">
+mFragmentManager : FragmentManagerImpl</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="292" x="390" y="706"/>
+<text font-family="Dialog" font-size="12" x="394" y="721">
+getFragmentManagerImpl() : FragmentManagerImpl</text>
+<rect fill="#ffffff" height="347" stroke="#ffffff" stroke-width="1" width="287" x="14" y="614"/>
+<rect fill="none" height="347" stroke="#000000" stroke-width="1" width="287" x="14" y="614"/>
+<text font-family="Dialog" font-size="12" x="104" y="628">
+FragmentController</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="287" x="14" y="640"/>
+<text font-family="Dialog" font-size="12" x="18" y="655">
+mHost : FragmentHostCallback</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="287" x="14" y="667"/>
+<text font-family="Dialog" font-size="12" x="18" y="682">
+getSupportFragmentManager() : FragmentManager</text>
+<text font-family="Dialog" font-size="12" x="18" y="701">
+dispatchCreate()</text>
+<text font-family="Dialog" font-size="12" x="18" y="720">
+dispatchActivityCreated()</text>
+<text font-family="Dialog" font-size="12" x="18" y="739">
+dispatchStart()</text>
+<text font-family="Dialog" font-size="12" x="18" y="758">
+dispatchResume()</text>
+<text font-family="Dialog" font-size="12" x="18" y="777">
+dispatchPause()</text>
+<text font-family="Dialog" font-size="12" x="18" y="796">
+dispatchStop()</text>
+<text font-family="Dialog" font-size="12" x="18" y="815">
+dispatchDestroyView()</text>
+<text font-family="Dialog" font-size="12" x="18" y="834">
+dispatchDestroy()</text>
+<text font-family="Dialog" font-size="12" x="18" y="853">
+dispatchMultiWindowModeChanged()</text>
+<text font-family="Dialog" font-size="12" x="18" y="872">
+dispatchConfigurationChanged()</text>
+<text font-family="Dialog" font-size="12" x="18" y="891">
+attachHost()</text>
+<text font-family="Dialog" font-size="12" x="18" y="910">
+onCreateView()</text>
+<text font-family="Dialog" font-size="12" x="18" y="929">
+saveAllState()</text>
+<text font-family="Dialog" font-size="12" x="18" y="948">
+restoreAllState()</text>
+<rect fill="#ffffff" height="69" stroke="#ffffff" stroke-width="1" width="182" x="449" y="807"/>
+<rect fill="none" height="69" stroke="#000000" stroke-width="1" width="182" x="449" y="807"/>
+<text font-family="Dialog" font-size="12" x="454" y="821">
+FragmentActivity.HostCallbacks</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="182" x="449" y="833"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="182" x="449" y="854"/>
+<polyline fill="none" points="538,807 538,741" stroke="#333399" stroke-width="1"/>
+<polygon fill="#ffffff" points="538,741 545,753 531,753" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="538,741 545,753 531,753" stroke="#333399" stroke-width="1"/>
+<polyline fill="none" points="178,488 178,614" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="178,488 183,498 178,508 173,498" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="178,488 183,498 178,508 173,498" stroke="#000000" stroke-width="1"/>
+<polyline fill="none" points="300,694 390,694" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="300,694 310,689 320,694 310,699" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="300,694 310,689 320,694 310,699" stroke="#000000" stroke-width="1"/>
+<rect fill="#ffffff" height="94" stroke="#ffffff" stroke-width="1" width="191" x="446" y="486"/>
+<rect fill="none" height="94" stroke="#000000" stroke-width="1" width="191" x="446" y="486"/>
+<text font-family="Dialog" font-size="12" x="488" y="500">
+FragmentContainer</text>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="191" x="446" y="512"/>
+<rect fill="#000000" height="1" stroke="#000000" stroke-width="1" width="191" x="446" y="533"/>
+<text font-family="Dialog" font-size="12" x="450" y="548">
+onHasView(id : Integer) : Boolean</text>
+<text font-family="Dialog" font-size="12" x="450" y="567">
+onFindViewById() : View</text>
+<polyline fill="none" points="538,646 538,579" stroke="#333399" stroke-width="1"/>
+<polygon fill="#ffffff" points="538,579 545,591 531,591" stroke="#ffffff" stroke-width="1"/>
+<polygon fill="none" points="538,579 545,591 531,591" stroke="#333399" stroke-width="1"/>
+<polyline fill="none" points="681,726 822,726" stroke="#000000" stroke-width="1"/>
+<polyline fill="none" points="961,726 1214,726" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="422,942 681,942 691,952 691,1000 422,1000 422,942" stroke="#ffffff" stroke-width="1"/>
+<polyline fill="none" points="422,942 681,942 691,952 691,1000 422,1000 422,942" stroke="#000000" stroke-width="1"/>
+<polygon fill="#ffffff" points="681,942 691,952 681,952 681,942" stroke="#ffffff" stroke-width="1"/>
+<polyline fill="none" points="681,942 691,952 681,952 681,942" stroke="#000000" stroke-width="1"/>
+<text font-family="Dialog" font-size="12" x="425" y="958">
+实现了FragmentHostCallbacks中一些抽象方法</text>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="942" y2="937"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="932" y2="927"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="922" y2="917"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="912" y2="907"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="902" y2="897"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="892" y2="887"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="542" x2="542" y1="882" y2="877"/>
+<polyline fill="none" points="950,398 950,230 1142,230" stroke="#000000" stroke-width="1"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1130" x2="1142" y1="237" y2="230"/>
+<line fill="#000000" stroke="#000000" stroke-width="1" x1="1130" x2="1142" y1="223" y2="230"/>
+<polyline fill="none" points="656,190 862,190 862,398" stroke="#000000" stroke-width="1"/>
+</svg>

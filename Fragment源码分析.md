@@ -3,15 +3,18 @@
 
 ## 本文主要分析的内容
 - Fragment的使用
-- Activity与Fragment之间的关系
+- Activity与Fragment之间的通信
 - 一次Transaction发生了什么
-- Fragment.startActivityForResult过程
+- Actvity与Framgent生命周期的关联
 - Fragment的恢复机制
+- Fragment中的一些细节
+- FragmentPagerAdapter是如何工作的
 
 ## 本文不会涉及到的内容
 
 - Transition
 - Fragment与Loader
+- BackStack相关
 
 ## Fragment的使用
 
@@ -417,7 +420,7 @@ BackStackRecord会被添加到mPendingActions中，由scheduleCommit交给handle
     }
 
 ```
-在scheduleCommit()中会在Main线程上执行execPendingActions()方法
+scheduleCommit()中会在Main线程上执行execPendingActions()方法
 ```Java
     Runnable mExecCommit = new Runnable() {
         @Override
@@ -555,11 +558,546 @@ executeOps()遍历了mOps，并根据op的cmd调用FragmentManager对应的方�
     }
 
 ```
+下面我们来看看FragmentManager对于addFragment()做了些什么
 
 
+```Java
+    public void addFragment(Fragment fragment, boolean moveToStateNow) {
+        //1. 创建mAdded数组
+        if (mAdded == null) {
+            mAdded = new ArrayList<Fragment>();
+        }
+        
+        //2.将fragment加入active数组中
+        makeActive(fragment);
+
+        if (!fragment.mDetached) {
+            
+            //3. 将fragment加入数组中
+            mAdded.add(fragment);
+            fragment.mAdded = true;
+            fragment.mRemoving = false;
+            if (fragment.mView == null) {
+                fragment.mHiddenChanged = false;
+            }
+            if (fragment.mHasMenu && fragment.mMenuVisible) {
+                mNeedMenuInvalidate = true;
+            }
+
+            //4. 如果需要，将fragment的状态进行同步
+            if (moveToStateNow) {
+                moveToState(fragment);
+            }
+        }
+    }
+
+    void makeActive(Fragment f) {
+        if (f.mIndex >= 0) {
+            return;
+        }
+
+        if (mAvailIndices == null || mAvailIndices.size() <= 0) {
+            if (mActive == null) {
+                mActive = new ArrayList<Fragment>();
+            }
+            //对fragment设置index
+            f.setIndex(mActive.size(), mParent);
+            mActive.add(f);
+
+        } else {
+            f.setIndex(mAvailIndices.remove(mAvailIndices.size()-1), mParent);
+            mActive.set(f.mIndex, f);
+        }
+         
+    }
+
+
+```
+FragmentManager的moveToState()方法主要工作就是将fragment的状态与FragmentManagr的状态同步。
+阅读下面的代码可以看到在moveToState()的主要工作就是将fragment的状态迁移到新状态中。每一个case分支都比较复杂，在此不做深入分析。
+
+```Java
+    void moveToState(Fragment f, int newState, int transit, int transitionStyle,
+            boolean keepActive) {
+        
+        //Fragment的state小于newState
+        if (f.mState < newState) {
+            
+            //... 
+            
+            switch (f.mState) {
+                case Fragment.INITIALIZING:
+                    //...
+                case Fragment.CREATED:
+                    //Fragment处于CREATED, 新状态在CREATED之后
+                    if (newState > Fragment.CREATED) {
+                            f.mContainer = container;
+                            //1. 创建Fragment的view，performCreateView会调用onCreateView()
+                            f.mView = f.performCreateView(f.getLayoutInflater(
+                                    f.mSavedFragmentState), container, f.mSavedFragmentState);
+
+                            if (f.mView != null) {
+                                f.mInnerView = f.mView;
+                                if (Build.VERSION.SDK_INT >= 11) {
+                                    ViewCompat.setSaveFromParentEnabled(f.mView, false);
+                                } else {
+                                    f.mView = NoSaveStateFrameLayout.wrap(f.mView);
+                                }
+                                if (container != null) {
+                                    container.addView(f.mView);
+                                }
+                                if (f.mHidden) {
+                                    f.mView.setVisibility(View.GONE);
+                                }
+                                //调用Fragment的onViewCreated()
+                                f.onViewCreated(f.mView, f.mSavedFragmentState);
+                                //...
+                            } else {
+                                f.mInnerView = null;
+                            }
+                        }
+                        //performActivityCreated()内部会调用onActivityCreated()方法
+                        f.performActivityCreated(f.mSavedFragmentState);
+                        //...
+                    }
+                case Fragment.ACTIVITY_CREATED:
+                     //...
+                case Fragment.STOPPED:
+                    //...
+                case Fragment.STARTED:
+                    //...
+            }
+        } else if (f.mState > newState) {
+            switch (f.mState) {
+                case Fragment.RESUMED:
+                    if (newState < Fragment.RESUMED) {
+
+                        f.performPause();
+                    }
+                case Fragment.STARTED:
+                    if (newState < Fragment.STARTED) {
+                        f.performStop();
+                    }
+                case Fragment.STOPPED:
+                    if (newState < Fragment.STOPPED) {
+                        if (DEBUG) Log.v(TAG, "movefrom STOPPED: " + f);
+                        f.performReallyStop();
+                    }
+                case Fragment.ACTIVITY_CREATED:
+                    if (newState < Fragment.ACTIVITY_CREATED) {
+                        //...
+                    }
+                case Fragment.CREATED:
+                    if (newState < Fragment.CREATED) {
+                       //...
+                    }
+            }
+        }
+        //...
+    }
+
+```
+至此，Fragment就完成了加入FragmentManager的全过程。
+
+## Actvity与Framgent生命周期的关联
+接着，让我们看看Actvity与Framgent生命周期的关联
+
+FragmentActivity接收到生命周期改变时，会通过mFragments调用FragmentManager对应的方法。
+
+FragmentActivity.java
+
+```Java
+
+    //...
+        
+    protected void onResume() {
+        super.onResume();
+        //...
+        mFragments.execPendingActions();
+    }
+
+
+    protected void onPause() {
+        super.onPause();
+        //...
+        mFragments.dispatchPause();
+    }
+
+    protected void onStop() {
+        super.onStop();
+        //...
+        mFragments.dispatchStop();
+    }
+
+    //...
+
+```
+在FragmentManager中，会调用moveToState()进行状态的迁移
+```Java
+    //...
+
+    public void dispatchResume() {
+        mStateSaved = false;
+        mExecutingActions = true;
+        moveToState(Fragment.RESUMED, false);
+        mExecutingActions = false;
+    }
+
+    public void dispatchPause() {
+        mExecutingActions = true;
+        moveToState(Fragment.STARTED, false);
+        mExecutingActions = false;
+    }
+
+     public void dispatchStop() {
+        mStateSaved = true;
+        mExecutingActions = true;
+        moveToState(Fragment.STOPPED, false);
+        mExecutingActions = false;
+    }
+
+```
+moveToState()的主要工作就是遍历所有Fragment并改变他们的状态。
+
+```Java
+    void moveToState(int newState, boolean always) {
+         
+        if (!always && newState == mCurState) {
+            return;
+        }
+
+        mCurState = newState;
+
+        if (mActive != null) {
+            boolean loadersRunning = false;
+
+            
+            //1. 首先遍历mAdded数组，将Fragment的状态移动到newState上
+            if (mAdded != null) {
+                final int numAdded = mAdded.size();
+                for (int i = 0; i < numAdded; i++) {
+                    Fragment f = mAdded.get(i);
+                    moveFragmentToExpectedState(f);
+                }
+            }
+
+            //2. 便利mActive数组中的Fragment，进行状态迁移
+            final int numActive = mActive.size();
+            for (int i = 0; i < numActive; i++) {
+                Fragment f = mActive.get(i);
+                //对于正在移除或者detached的Fragment也会进行状态迁移
+                if (f != null && (f.mRemoving || f.mDetached) && !f.mIsNewlyAdded) {
+                    moveFragmentToExpectedState(f);
+                }
+            }
+
+            //...
+        }
+    }
+
+```
+moveFragmentToExpectedState()和执行Ops一样，也通过moveToState()方法完成了状态的同步。
+```Java
+void moveFragmentToExpectedState(Fragment f) {
+        //...
+        moveToState(f, nextState, f.getNextTransition(), f.getNextTransitionStyle(), false);
+        //...
+    }
+
+```
 
 ## Fragment的恢复机制
 
+接下来，我们再来看看Fragment是如何被恢复的。
+当FragmentActivity发生内存不足时，会通过onSaveInstanceState()来保存资源
+```Java
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //1. 通过FragmentManager保存Fragment状态
+        Parcelable p = mFragments.saveAllState();
+        if (p != null) {
+            //保存Parcelable
+            outState.putParcelable(FRAGMENTS_TAG, p);
+        }
+
+        //2. 保存startForResult的索引数据
+        if (mPendingFragmentActivityResults.size() > 0) {
+            outState.putInt(NEXT_CANDIDATE_REQUEST_INDEX_TAG, mNextCandidateRequestIndex);
+
+            int[] requestCodes = new int[mPendingFragmentActivityResults.size()];
+            String[] fragmentWhos = new String[mPendingFragmentActivityResults.size()];
+            for (int i = 0; i < mPendingFragmentActivityResults.size(); i++) {
+                requestCodes[i] = mPendingFragmentActivityResults.keyAt(i);
+                fragmentWhos[i] = mPendingFragmentActivityResults.valueAt(i);
+            }
+            outState.putIntArray(ALLOCATED_REQUEST_INDICIES_TAG, requestCodes);
+            outState.putStringArray(REQUEST_FRAGMENT_WHO_TAG, fragmentWhos);
+        }
+    }
+
+```
+
+FragmentManager将所有fragment进行了序列化，并返回了一个Parcelable对象。
+
+```Java
+Parcelable saveAllState() {
+         
+        //针对mActive数组，创建一个FragmentState数组用于保存对象
+        //FragmentState是一个Parcelable实现类，用于保存Fragment的数据
+        int N = mActive.size();
+        FragmentState[] active = new FragmentState[N];
+        boolean haveFragments = false;
+        for (int i=0; i<N; i++) {
+            Fragment f = mActive.get(i);
+            if (f != null) {
+               
+                haveFragments = true;
+            
+                //创建FragmentState
+                FragmentState fs = new FragmentState(f);
+                active[i] = fs;
+
+                //...
+            }
+        }
+
+        int[] added = null;
+        BackStackState[] backStack = null;
+       
+        if (mAdded != null) {
+            //...
+        }
+
+        // 保存BackStack
+        if (mBackStack != null) {
+            //...
+        }
+
+        FragmentManagerState fms = new FragmentManagerState();
+        fms.mActive = active;
+        fms.mAdded = added;
+        fms.mBackStack = backStack;
+        return fms;
+    }
+
+```
+
+以下是FragmentState的部分代码，可以足以到它提供了instantiate()方法，允许根据自生保存的变量创建一份新的Fragment
+
+```Java
+
+final class FragmentState implements Parcelable {
+
+    //记录Fragment的类名，以便恢复时用以反射
+    final String mClassName;
+    final int mIndex;
+    final boolean mFromLayout;
+    final int mFragmentId;
+    final int mContainerId;
+    final String mTag;
+    final boolean mRetainInstance;
+    final boolean mDetached;
+    final Bundle mArguments;
+    final boolean mHidden;
+    
+    Bundle mSavedFragmentState;
+    
+    Fragment mInstance;
+
+    //...
+
+    
+    public Fragment instantiate(FragmentHostCallback host, Fragment parent,
+            FragmentManagerNonConfig childNonConfig) {
+        if (mInstance == null) {
+            final Context context = host.getContext();
+            if (mArguments != null) {
+                mArguments.setClassLoader(context.getClassLoader());
+            }
+
+            //在此利用反射的方式创建Fragment
+            mInstance = Fragment.instantiate(context, mClassName, mArguments);
+
+            if (mSavedFragmentState != null) {
+                mSavedFragmentState.setClassLoader(context.getClassLoader());
+                mInstance.mSavedFragmentState = mSavedFragmentState;
+            }
+            mInstance.setIndex(mIndex, parent);
+            mInstance.mFromLayout = mFromLayout;
+            mInstance.mRestored = true;
+            mInstance.mFragmentId = mFragmentId;
+            mInstance.mContainerId = mContainerId;
+            mInstance.mTag = mTag;
+            mInstance.mRetainInstance = mRetainInstance;
+            mInstance.mDetached = mDetached;
+            mInstance.mHidden = mHidden;
+            mInstance.mFragmentManager = host.mFragmentManager;
+        }
+        mInstance.mChildNonConfig = childNonConfig;
+        return mInstance;
+    }
+
+    //...
+}
+
+```
+
+Fragment的instantiate()通过反射的方式创建了一个新的Fragment。这里也就解释了为什么Fragment需要一个默认构造方法，且不能是匿名类的原因。
+
+```Java
+    public static Fragment instantiate(Context context, String fname, @Nullable Bundle args) {
+        try {
+            //对于Class做了缓存
+            Class<?> clazz = sClassMap.get(fname);
+            if (clazz == null) {
+                clazz = context.getClassLoader().loadClass(fname);
+                sClassMap.put(fname, clazz);
+            }
+            Fragment f = (Fragment)clazz.newInstance();
+            //设置arguments
+            if (args != null) {
+                args.setClassLoader(f.getClass().getClassLoader());
+                f.mArguments = args;
+            }
+            return f;
+        } catch (ClassNotFoundException e) {
+            //...
+        } catch (java.lang.InstantiationException e) {
+            //...
+        } catch (IllegalAccessException e) {
+            //...
+        }
+    }
+```
+当FragmentActivity再次恢复的同时，会恢复Fragment。
+
+```Java
+ protected void onCreate(@Nullable Bundle savedInstanceState) {
+        mFragments.attachHost(null /*parent*/);
+
+        super.onCreate(savedInstanceState);
+ 
+        //...
+
+        if (savedInstanceState != null) {
+            //从bundle中获得Fragment的记录
+            Parcelable p = savedInstanceState.getParcelable(FRAGMENTS_TAG);
+            //调用FragmentManager进行状态的恢复
+            mFragments.restoreAllState(p, nc != null ? nc.fragments : null);
+
+            //...
+        }
+
+        //通过FragmentManager迁移状态
+        mFragments.dispatchCreate();
+    }
+
+```
+
+FragmentManager的restoreAllState()方法主要做了3件事，恢复retain的Fragment(在此不做分析)，反射出保存的Fragment，恢复回退栈(略)。
+restoreAllState()结束之后，所有保存的Fragment就恢复了。
+
+```Java
+
+ void restoreAllState(Parcelable state, FragmentManagerNonConfig nonConfig) {
+        
+        FragmentManagerState fms = (FragmentManagerState)state;
+        if (fms.mActive == null) return;
+
+        List<FragmentManagerNonConfig> childNonConfigs = null;
+        
+        //...
+
+        //1. 重新创建mActive数组
+
+        mActive = new ArrayList<>(fms.mActive.length);
+        if (mAvailIndices != null) {
+            mAvailIndices.clear();
+        }
+
+        //2. 遍历FragmentManagerState的active数组，重建Fragment
+        for (int i=0; i<fms.mActive.length; i++) {
+            FragmentState fs = fms.mActive[i];
+            if (fs != null) {
+                //...
+                Fragment f = fs.instantiate(mHost, mParent, childNonConfig);
+              
+                mActive.add(f);
+                fs.mInstance = null;
+            }  
+        }
+
+        //3. 建立mAdded数组
+        if (fms.mAdded != null) {
+            mAdded = new ArrayList<Fragment>(fms.mAdded.length);
+            for (int i=0; i<fms.mAdded.length; i++) {
+                Fragment f = mActive.get(fms.mAdded[i]);
+                f.mAdded = true;
+                mAdded.add(f);
+            }
+        } else {
+            mAdded = null;
+        }
+
+        //...
+    }
+
+```
+## Fragment中的一些细节
+看完FragmentActivity, FragmentManager,我们再来看看Fragment有哪些特点。
+
+阅读源码可以发现，Fragment提供了两个获得FragmentManager的方法。getChildFragmentManager()，主要是针对Fragment内嵌的Fragment的。
+```Java
+    final public FragmentManager getFragmentManager() {
+        return mFragmentManager;
+    }
+
+    
+    final public FragmentManager getChildFragmentManager() {
+        if (mChildFragmentManager == null) {
+            instantiateChildFragmentManager();
+            if (mState >= RESUMED) {
+                mChildFragmentManager.dispatchResume();
+            } else if (mState >= STARTED) {
+                mChildFragmentManager.dispatchStart();
+            } else if (mState >= ACTIVITY_CREATED) {
+                mChildFragmentManager.dispatchActivityCreated();
+            } else if (mState >= CREATED) {
+                mChildFragmentManager.dispatchCreate();
+            }
+        }
+        return mChildFragmentManager;
+    }
+
+```
+
+当FragmentManager在moveToState()中调用Fragment的performXXX()时，Fragment除了调用自己的生命周期方法外，还会通过mChildFragmentManager通知内嵌的Fragment状态发生了改变。
+
+```Java
+    void performResume() {
+        if (mChildFragmentManager != null) {
+            mChildFragmentManager.noteStateNotSaved();
+            mChildFragmentManager.execPendingActions();
+        }
+        mState = RESUMED;
+        onResume();
+        if (mChildFragmentManager != null) {
+            mChildFragmentManager.dispatchResume();
+            mChildFragmentManager.execPendingActions();
+        }
+    }
+
+    void performPause() {
+        if (mChildFragmentManager != null) {
+            mChildFragmentManager.dispatchPause();
+        }
+        mState = STARTED;
+        mCalled = false;
+        onPause();
+    }
+
+
+```
 
 ## FragmentPagerAdapter是如何工作的
 
@@ -604,9 +1142,6 @@ FragmentPagerAdapter继承了PagerAdapter，在构造时需要传入FragmentMana
         return fragment;
     }
 
-```
-
-```Java
     public void destroyItem(ViewGroup container, int position, Object object) {
         if (mCurTransaction == null) {
             mCurTransaction = mFragmentManager.beginTransaction();
@@ -620,7 +1155,7 @@ FragmentPagerAdapter继承了PagerAdapter，在构造时需要传入FragmentMana
 FragmentManagerImpl中是如何做detach的
 
 ```Java
-public void detachFragment(Fragment fragment) {
+    public void detachFragment(Fragment fragment) {
         
         if (!fragment.mDetached) {
             fragment.mDetached = true;
@@ -639,6 +1174,36 @@ public void detachFragment(Fragment fragment) {
             }
         }
     }
+```
+
+尽管fragment从mAdded中被移除了，但是FragmentManager依然可以通过findFragmentByTag来找到这个Fragment。
+
+```Java
+
+    public Fragment findFragmentById(int id) {
+
+        //1. 被detach的fragment是不会出现在mAdded中的
+        if (mAdded != null) {     
+            for (int i=mAdded.size()-1; i>=0; i--) {
+                Fragment f = mAdded.get(i);
+                if (f != null && f.mFragmentId == id) {
+                    return f;
+                }
+            }
+        }
+        
+        //2. 被detach的fragment还留在mActive中
+        if (mActive != null) {
+            
+            for (int i=mActive.size()-1; i>=0; i--) {
+                Fragment f = mActive.get(i);
+                if (f != null && f.mFragmentId == id) {
+                    return f;
+                }
+            }
+        }
+        return null;
+    }
 
 ```
 
@@ -647,7 +1212,9 @@ public void detachFragment(Fragment fragment) {
 
 - Fragment必须提供默认构造方法。
 - Fragment的恢复是由FragmentManager控制的，Activity恢复时不要重复添加。
+- startActivityForResult时，fragment和Activity的request是不同的。
 - 如果要在Fragment中嵌套Fragment需要用Fragment的getChildFragmentManager()获取FragmentManager，如Fragment中嵌套ViewPager。
-- Fragment在ViewPager中，setUserVisibleHint会被调用，作为即将可见的提示
-- FragmentManager提供了FragmentLifecycleCallbacks可以对Fragment的生命周期进行监听
+- Fragment在ViewPager中，setUserVisibleHint会被调用，作为即将可见的提示。
+- FragmentManager提供了FragmentLifecycleCallbacks可以对Fragment的生命周期进行监听。
 - 对于MVP+FragmentPagerAdapter+ViewPager的情况，Activity恢复时Fragment需要考虑重新设定presenter。
+- setRetain之后，Fragment在配置发生改变时不会进行状态的保存和恢复（本文没有分析到），常用于保存变量，对于内存不足的情况依然会重新恢复。

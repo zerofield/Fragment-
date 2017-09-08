@@ -381,7 +381,7 @@ BackStackRecord.java
 
 ```
 
-另外，如果想要立刻执行也可以调用commitNow()方法。可以看到，在commitNow中，manager立刻执行了action
+另外，如果想要立刻执行也可以调用commitNow()方法。可以看到，在commitNow中，manager立刻执行了action。
 ```Java
     public void commitNow() {
         disallowAddToBackStack();
@@ -389,11 +389,170 @@ BackStackRecord.java
     }
 ```
 
-再来看看manager具体是怎么执行action的
+再来看看manager具体是怎么执行action的。enqueueAction接受OpGenerator作为入参，而BackStackRecord恰恰实现了该接口。
+BackStackRecord会被添加到mPendingActions中，由scheduleCommit交给handler进行调度。
+
+
+```Java 
+    ArrayList<OpGenerator> mPendingActions;
+
+     interface OpGenerator {
+        boolean generateOps(ArrayList<BackStackRecord> records, ArrayList<Boolean> isRecordPop);
+    }
+
+    public void enqueueAction(OpGenerator action, boolean allowStateLoss) {
+        if (!allowStateLoss) {
+            checkStateLoss();
+        }
+        synchronized (this) {
+            if (mDestroyed || mHost == null) {
+                throw new IllegalStateException("Activity has been destroyed");
+            }
+            if (mPendingActions == null) {
+                mPendingActions = new ArrayList<>();
+            }
+            mPendingActions.add(action);
+            scheduleCommit();
+        }
+    }
+
+```
+在scheduleCommit()中会在Main线程上执行execPendingActions()方法
+```Java
+    Runnable mExecCommit = new Runnable() {
+        @Override
+        public void run() {
+            execPendingActions();
+        }
+    };
+
+    private void scheduleCommit() {
+        synchronized (this) {
+            boolean postponeReady =
+                    mPostponedTransactions != null && !mPostponedTransactions.isEmpty();
+            boolean pendingReady = mPendingActions != null && mPendingActions.size() == 1;
+            if (postponeReady || pendingReady) {
+                mHost.getHandler().removeCallbacks(mExecCommit);
+                mHost.getHandler().post(mExecCommit);
+            }
+        }
+    }
+```
+execPendingActions() 的主要工作就是执行mPendingActions中所有的操作。
+```Java
+    public boolean execPendingActions() {
+        ensureExecReady(true);
+
+        boolean didSomething = false;
+        //1. 把mPendingActions中所有的记录存入mTmpRecords中
+        while (generateOpsForPendingActions(mTmpRecords, mTmpIsPop)) {
+            mExecutingActions = true;
+            try {
+                //2. 执行动作
+                optimizeAndExecuteOps(mTmpRecords, mTmpIsPop);
+            } finally {
+                cleanupExec();
+            }
+            didSomething = true;
+        }
+
+        doPendingDeferredStart();
+
+        return didSomething;
+    }
+    
+    
+    private boolean generateOpsForPendingActions(ArrayList<BackStackRecord> records,
+            ArrayList<Boolean> isPop) {
+        int numActions;
+        synchronized (this) {
+            if (mPendingActions == null || mPendingActions.size() == 0) {
+                return false;
+            }
+
+            numActions = mPendingActions.size();
+            //遍历mPendingActions中的OpGenerator,添加到records数组中
+            for (int i = 0; i < numActions; i++) {
+                mPendingActions.get(i).generateOps(records, isPop);
+            }
+            mPendingActions.clear();
+            mHost.getHandler().removeCallbacks(mExecCommit);
+        }
+        return numActions > 0;
+    }
+    
+        
+    //执行Ops
+    private void optimizeAndExecuteOps(ArrayList<BackStackRecord> records,
+            ArrayList<Boolean> isRecordPop) {
+        
+
+        //...
+        //optimizeAndExecuteOps()对records进行了一部分优化，并最后调用了executeOpsTogether()方法
+        executeOpsTogether(records, isRecordPop, startIndex, numRecords);
+        //...
+    }
+    
+```
+下面来看看executeOpsTogether()，其中最核心的一行就是executeOps()。
+executeOps()遍历了所有的recods，并最最终调用了record的executePopOps()或者executeOps()方法进行实际的操作。
 
 ```Java
+    private void executeOpsTogether(ArrayList<BackStackRecord> records,
+            ArrayList<Boolean> isRecordPop, int startIndex, int endIndex) {
+        //...
+        executeOps(records, isRecordPop, startIndex, endIndex);
+        //...
+    }
 
+    private static void executeOps(ArrayList<BackStackRecord> records,
+            ArrayList<Boolean> isRecordPop, int startIndex, int endIndex) {
+        for (int i = startIndex; i < endIndex; i++) {
+            final BackStackRecord record = records.get(i);
 
+            final boolean isPop = isRecordPop.get(i);
+            if (isPop) {
+                //...  
+                record.executePopOps(moveToState);
+                //...
+            } else {
+                //...
+                record.executeOps();
+                //...
+            }
+        }
+    }
+
+```
+回到BackStackRecord,让我们看看executeOps()发生了什么。
+executeOps()遍历了mOps，并根据op的cmd调用FragmentManager对应的方法，最终完成了mOps数组的执行。
+
+```Java
+    void executeOps() {
+        final int numOps = mOps.size();
+        for (int opNum = 0; opNum < numOps; opNum++) {
+            final Op op = mOps.get(opNum);
+            final Fragment f = op.fragment;
+            f.setNextTransition(mTransition, mTransitionStyle);
+            switch (op.cmd) {
+                case OP_ADD:
+                    f.setNextAnim(op.enterAnim);
+                    mManager.addFragment(f, false);
+                    break;
+                case OP_REMOVE:
+                    f.setNextAnim(op.exitAnim);
+                    mManager.removeFragment(f);
+                    break;
+                case OP_HIDE:
+                    f.setNextAnim(op.exitAnim);
+                    mManager.hideFragment(f);
+                    break;
+                //...对于其他cmd，也是类似的操作
+            }
+            //...
+        }
+        //...
+    }
 
 ```
 
@@ -402,8 +561,86 @@ BackStackRecord.java
 ## Fragment的恢复机制
 
 
-## FragmentAdapter是怎么工作的
+## FragmentPagerAdapter是如何工作的
 
+FragmentPagerAdapter继承了PagerAdapter，在构造时需要传入FragmentManager并重写了instantiateItem()和destroyItem()这两个方法，实现了在ViewPager中添加Fragment的工作。
+
+```Java
+    
+    //makeFragmentName根据fragment的id和viewId为fragment创建了一个唯一的名字
+    private static String makeFragmentName(int viewId, long id) {
+        return "android:switcher:" + viewId + ":" + id;
+    }
+
+
+    public Object instantiateItem(ViewGroup container, int position) {
+        if (mCurTransaction == null) {
+            mCurTransaction = mFragmentManager.beginTransaction();
+        }
+
+        final long itemId = getItemId(position);
+
+        //1. 通过fragment的名字查找fragment
+        String name = makeFragmentName(container.getId(), itemId);
+        Fragment fragment = mFragmentManager.findFragmentByTag(name);
+        //2.1 如果找到fragment，就直接attach
+        if (fragment != null) {
+            if (DEBUG) Log.v(TAG, "Attaching item #" + itemId + ": f=" + fragment);
+            mCurTransaction.attach(fragment);
+        } else {
+            //2.2 找不到fragment的情况下通过getItem获得fragment，并进行添加
+            fragment = getItem(position);
+            if (DEBUG) Log.v(TAG, "Adding item #" + itemId + ": f=" + fragment);
+            mCurTransaction.add(container.getId(), fragment,
+                    makeFragmentName(container.getId(), itemId));
+        }
+
+        //3. 最后设置frament可见
+        if (fragment != mCurrentPrimaryItem) {
+            fragment.setMenuVisibility(false);
+            fragment.setUserVisibleHint(false);
+        }
+
+        return fragment;
+    }
+
+```
+
+```Java
+    public void destroyItem(ViewGroup container, int position, Object object) {
+        if (mCurTransaction == null) {
+            mCurTransaction = mFragmentManager.beginTransaction();
+        }
+
+        //销毁时会将fragment detach掉，此时，Fragment并没有被移除，而仅仅是将view给移除
+        mCurTransaction.detach((Fragment)object);
+    }
+```
+
+FragmentManagerImpl中是如何做detach的
+
+```Java
+public void detachFragment(Fragment fragment) {
+        
+        if (!fragment.mDetached) {
+            fragment.mDetached = true;
+            if (fragment.mAdded) {
+                 
+                //移除added数组中移除
+                if (mAdded != null) {
+                    mAdded.remove(fragment);
+                }
+                if (fragment.mHasMenu && fragment.mMenuVisible) {
+                    mNeedMenuInvalidate = true;
+                }
+
+                //设置added为false
+                fragment.mAdded = false;
+            }
+        }
+    }
+
+```
 
 ### 总结
 通过以上代码分析可以总结出以下结论：
@@ -411,5 +648,6 @@ BackStackRecord.java
 - Fragment必须提供默认构造方法。
 - Fragment的恢复是由FragmentManager控制的，Activity恢复时不要重复添加。
 - 如果要在Fragment中嵌套Fragment需要用Fragment的getChildFragmentManager()获取FragmentManager，如Fragment中嵌套ViewPager。
+- Fragment在ViewPager中，setUserVisibleHint会被调用，作为即将可见的提示
 - FragmentManager提供了FragmentLifecycleCallbacks可以对Fragment的生命周期进行监听
-- 对于MVP+FragmentPagerAdapter+ViewPager的情况，Activity恢复时需要考虑重新设定presenter。
+- 对于MVP+FragmentPagerAdapter+ViewPager的情况，Activity恢复时Fragment需要考虑重新设定presenter。

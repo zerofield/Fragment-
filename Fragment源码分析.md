@@ -294,6 +294,8 @@ FragmentActivity.java
         addOp(op);
     }
 
+
+    //add, replace, remove, hide, show, detach, attach的内部实现尽在cmd上有所差异
     @Override
     public FragmentTransaction replace(int containerViewId, Fragment fragment) {
         return replace(containerViewId, fragment, null);
@@ -404,3 +406,10 @@ BackStackRecord.java
 
 
 ### 总结
+通过以上代码分析可以总结出以下结论：
+
+- Fragment必须提供默认构造方法。
+- Fragment的恢复是由FragmentManager控制的，Activity恢复时不要重复添加。
+- 如果要在Fragment中嵌套Fragment需要用Fragment的getChildFragmentManager()获取FragmentManager，如Fragment中嵌套ViewPager。
+- FragmentManager提供了FragmentLifecycleCallbacks可以对Fragment的生命周期进行监听
+- 对于MVP+FragmentPagerAdapter+ViewPager的情况，Activity恢复时需要考虑重新设定presenter。
